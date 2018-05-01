@@ -48,9 +48,32 @@
 
         window.twttr.ready(getTweets);
     </script>
+    <script>
+        function postTweet() {
+            var tweet = 'tweet=' + document.getElementById("tweet").value;
+            var obj = new XMLHttpRequest();
+            obj.onreadystatechange = function () {
+                if (obj.readyState === 4) {
+                    var response = JSON.parse(obj.response);
+                    window.twttr.widgets.createTweet(
+                        response.id_str,
+                        document.getElementById('container'),
+                        {
+                            theme: 'dark',
+                            conversation: 'none',
+                        }
+                    );
+                }
+            }
+            obj.open('POST', '/tweet', true);
+            obj.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            obj.send(tweet);
+            return false;
+        }
+    </script>
 </head>
 <body>
-    <form action="/tweet" method="POST">
+    <form method="POST" onsubmit="return postTweet();">
         <textarea id="tweet" name="tweet"></textarea>
         <input type="submit">
     </form>

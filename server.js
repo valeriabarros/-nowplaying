@@ -11,9 +11,7 @@ var express = require('express');
 var app = express();
 var path = require('path');
 var bodyParser = require('body-parser')
-app.use(bodyParser.urlencoded({
-    extended: true
-})); 
+app.use(bodyParser.urlencoded({extended : false})); 
 
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname + '/index.html'));
@@ -22,7 +20,7 @@ app.get('/', function (req, res) {
 app.post('/tweet', function(req, res) {
     client.post('statuses/update', { status: req.body.tweet })
         .then(function (tweet) {
-            res.send('Success');
+            res.json(tweet);
         })
         .catch(function (error) {
             res.status(500).json(error);
