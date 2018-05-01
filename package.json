@@ -13,6 +13,8 @@
     "twitter": "^1.7.1"
   },
   "devDependencies": {
-    "body-parser": "^1.18.2"
+    "body-parser": "^1.18.2",
+    "fs": "0.0.1-security",
+    "https": "^1.0.0"
   }
 }

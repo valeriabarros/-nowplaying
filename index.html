@@ -8,27 +8,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script>
         function getTweets() {
-            var obj = new XMLHttpRequest();
-            obj.onreadystatechange = function () {
-                if (obj.readyState === 4) {
-                    var json = JSON.parse(obj.response);
-                    json.statuses.forEach(element => {
-                        window.twttr.widgets.createTweet(
-                            element.id_str,
-                            document.getElementById('container'),
-                            {
-                                theme: 'dark',
-                                conversation: 'none',
-                                
-                            }
-                        );
-                    });
-                }
+            
+            var coordenades = null;
+            if(navigator.geolocation) { 
+                navigator.geolocation.getCurrentPosition(function(position) { 
+                    coordenades = position.coords.latitude + "," + position.coords.longitude + ",100km";
+                    sendRequest();
+                }); 
             }
-            obj.open('GET', '/search', true);
-            obj.send('');
-        }
 
+            function sendRequest() {
+                var obj = new XMLHttpRequest(); 
+                obj.onreadystatechange = function () { 
+                    if (obj.readyState === 4) { 
+                        var json = JSON.parse(obj.response);
+                        json.statuses.forEach(element => { window.twttr.widgets.createTweet( 
+                            element.id_str, 
+                            document.getElementById('container'),
+                                { theme: 'dark', conversation: 'none', cards: 'hidden' } 
+                            ); 
+                        }); 
+                    } 
+                } 
+                obj.open('GET', '/search?geocode=' + coordenades, true); 
+                obj.send();
+            }
+        }
+         
         window.twttr = (function (d, s, id) {
             var js, fjs = d.getElementsByTagName(s)[0],
                 t = window.twttr || {};
@@ -61,6 +67,7 @@
                         {
                             theme: 'dark',
                             conversation: 'none',
+                            cards: 'hidden'
                         }
                     );
                 }
@@ -71,10 +78,12 @@
             return false;
         }
     </script>
+  
 </head>
 <body>
     <form method="POST" onsubmit="return postTweet();">
         <textarea id="tweet" name="tweet"></textarea>
+
         <input type="submit">
     </form>
 
