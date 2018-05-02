@@ -8,32 +8,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        function getTweets() {
-            var geocode = getPosition(sendRequest);
-            debugger;
-            console.log(geocode);
-
-            if(navigator.geolocation) { 
-                navigator.geolocation.getCurrentPosition(function(position) { 
-                    geocode = position.coords.latitude + "," + position.coords.longitude + ",100km";
-                    sendRequest() ;
-                }); 
-            }
-
-            function sendRequest() {
-                var obj = new XMLHttpRequest(); 
-                debugger;
-                obj.onreadystatechange = function () { 
-                    if (obj.readyState === 4 && obj.response) { 
-                        JSON.parse(obj.response).forEach(tweet => { 
-                            renderTweet(tweet);
-                        }); 
-                    } 
-                } 
-                obj.open('GET', '/search?geocode=' + geocode, true); 
-                obj.send();
-            }
-        }
         function renderTweet(tweet) {
             var feed = document.getElementById('feed');
             var feedItemTemplate = document.getElementById('feed-item-template');
@@ -53,17 +27,16 @@
             feedItem.getElementsByTagName('h3')[0].innerText = tweet.youtubeTitle;
         }
 
-        function getPosition(execFunction) {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    return position.coords.latitude + ',' + position.coords.longitude;
-                });
-            }
-        }
         var socket = io('http://localhost:3000');
         socket.on('connect', function () {
             var self = this;
-            self.emit('geolocation', getPosition());
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    var geocode = position.coords.latitude + ',' + position.coords.longitude;
+                    self.emit('geolocation', geocode);
+                    self.emit('get tweets', geocode);
+                });
+            }
         });
 
         socket.on('city', city => {
@@ -97,6 +70,29 @@
         });
     </script>
     <script>
+        // function getTweets() {
+        //     var geocode = null;
+        //     if(navigator.geolocation) { 
+        //         navigator.geolocation.getCurrentPosition(function(position) { 
+        //             geocode = position.coords.latitude + "," + position.coords.longitude + ",100km";
+        //             sendRequest() ;
+        //         }); 
+        //     }
+
+        //     function sendRequest() {
+        //         var obj = new XMLHttpRequest(); 
+        //         obj.onreadystatechange = function () { 
+        //             if (obj.readyState === 4 && obj.response) { 
+        //                 JSON.parse(obj.response).forEach(tweet => { 
+        //                     renderTweet(tweet);
+        //                 }); 
+        //             } 
+        //         } 
+        //         obj.open('GET', '/search?geocode=' + geocode, true); 
+        //         obj.send();
+        //         setTimeout(sendRequest, 20000);
+        //     }
+        // }
         function postTweet() {
             var tweet = 'tweet=' + document.getElementById("tweet").value + " "
                                  + document.getElementById("video-url").value;
