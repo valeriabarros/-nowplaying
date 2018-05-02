@@ -1,5 +1,5 @@
 var Twitter = require('twitter');
-
+const APP_KEY = 'AIzaSyBg6WmUtEwm2MoPiKPzwpwbktvKRhvXUgE';
 var client = new Twitter({
     consumer_key: 'CXVNsTDohsJaIxl0cjpuLKXYr',
     consumer_secret: 'Y49dNi2NPN9vJaPS95QnRLslOqisEuC7v934lHOfN05cVjbtDB',
@@ -7,17 +7,98 @@ var client = new Twitter({
     access_token_secret: 'SUquQt3XC2ve3IIa8JbwMa4bsRCpZSJuCVKYAXLUTDBBT'
 });
 
-var express = require('express');
-var app = express();
+var app = require('express')();
+var server = require('http').createServer(app);
+var io = require('socket.io')(server);
+var getYoutubeTitle = require('get-youtube-title');
+const fetch = require('node-fetch');
 
-// const https = require('https')
-// const fs = require('fs')
-// const port = 3000
+// create a socket.io connection with the client
+io.on('connection', function (socket) {
+    console.log('User connected. Socket id %s', socket.id);
+    var stream;
 
-// const httpsOptions = {
-//     key: fs.readFileSync(__dirname + '/key.pem'),
-//     cert: fs.readFileSync(__dirname + '/cert.pem')
-// }
+
+    socket.on('geolocation', function (location) {
+        var mapsUrl = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + location + "&key=" + APP_KEY;
+        fetch(mapsUrl)
+            .then(res => res.json())
+            .then(json => {
+                if (json.status == 'OK') {
+                    var area = json.results.find(data => {
+                        return data.types.includes('administrative_area_level_2');
+                    });
+                    var locations = [area.geometry.bounds.southwest.lat, area.geometry.bounds.southwest.lng,
+                        area.geometry.bounds.northeast.lat, area.geometry.bounds.northeast.lng].join(',');
+                    var city = area.address_components[0].long_name;
+                    console.log('200 vezes?');
+                    stream = startStream(locations);
+                }
+            });
+      
+    });
+    socket.on('disconnect', function () {
+        console.log('User disconnected. %s. Socket id %s', socket.id);
+        if (stream) stream.destroy();
+    });
+});
+
+function startStream(locations) {
+    var stream = client.stream('statuses/filter', { track: '#nowplaying youtube com,#nowplaying youtu be', locations: locations });
+    stream.on('data', function (data) {
+        console.log(data);
+        function getYoutubeId(data) {
+            var sources = {
+                root: data,
+                retweet: data.retweeted_status,
+                extended: data.extended_tweet,
+                quoted_status: data.quoted_status,
+            };
+
+            if (data.retweeted_status && data.retweeted_status.extended_tweet) {
+                sources.extended_retweet = data.retweeted_status.extended_tweet;
+            }
+
+            function getId(entities) {
+                return entities.urls.reduce((acc, link) => {
+                    var idMatch = link.expanded_url.match(/.*(?:youtu.be|youtube).*?\/(?!results)(?:watch\?v=)?([\w-]*)/);
+                    return (acc === '' && idMatch && idMatch[1]) || acc;
+                }, '');
+            }
+            for (let source in sources) {
+                if (!sources[source]) {
+                    continue;
+                }
+                const youtubeId = getId(sources[source].entities);
+                if (youtubeId) {
+                    return youtubeId;
+                }
+            }
+            return null;
+        }
+
+        var youtubeId = getYoutubeId(data);
+        if (youtubeId) {
+            var tweet = {
+                id: data.id_str,
+                youtubeLink: 'https://www.youtube.com/embed/' + youtubeId
+            };
+
+            getYoutubeTitle(youtubeId, (err, title) => {
+                tweet.youtubeTitle = title;
+                io.sockets.emit('tweet', tweet);
+            });
+        }
+    });
+    return stream;
+}
+
+
+// listen to the twitter stream and tweet comes in send it to the client real time
+
+
+
+
 
 var path = require('path');
 var bodyParser = require('body-parser')
@@ -27,68 +108,8 @@ app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname + '/index.html'));
 });
 
-app.post('/tweet', function(req, res) {
-    client.post('statuses/update', { status: req.body.tweet })
-        .then(function (tweet) {
-            res.json(tweet);
-        })
-        .catch(function (error) {
-            res.status(500).json(error);
-        });
-});
-
-var getYoutubeTitle = require('get-youtube-title');
-var lastTweetId = 0;
-// var olderTweetId = 0;
-app.get('/search', (req, res) => {
-    client.get('search/tweets', {
-            q: '#nowplaying url:youtube', 
-            result_type: 'recent', 
-            count: 5, 
-            geocode: req.query.geocode,
-            include_entities: true,
-            since_id: lastTweetId,
-            max_id: olderTweetId
-        })
-        .then(function (response) {
-            lastTweetId =  response.search_metadata.since_id;
-            // olderTweetId = response.search_metadata.max_id;
 
 
-            var tweets = response.statuses.map(function (tweet) {
-                var youtubeId = tweet.entities.urls.reduce((acc, link) => {
-                    var idMatch = link.expanded_url.match(/.*(?:youtu.be|youtube).*?\/(?:watch\?v=)?(.*)/);
-                    return (acc === '' && idMatch && idMatch[1]) || acc;
-                }, '');
-
-                return {
-                    id: tweet.id_str,
-                    youtubeId: (youtubeId || 'dQw4w9WgXcQ')
-                }
-            });
-            var total = tweets.length;
-            var requestsCompleted = 0;
-
-            function onRequestComplete(youtubeTitle, index) {
-                tweets[index]['youtubeTitle'] = youtubeTitle;
-                requestsCompleted++;
-                if (requestsCompleted === total) {
-                    // lastTweetId = tweets[0].id;
-                    // console.log(lastTweetId);
-                    res.send(tweets);
-                }
-            }
-
-            tweets.forEach((tweet, index) => {
-                getYoutubeTitle(tweet.youtubeId, (err, title) => {
-                    onRequestComplete(title, index);
-                });
-            });
-        })
-        .catch(function (error) {
-            res.status(500).json(error);
-        });
-})
-app.listen(3000);
-
+server.listen(3000);
 console.log('server running at 3000');
+
