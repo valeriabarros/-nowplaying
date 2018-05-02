@@ -1,5 +1,5 @@
 var Twitter = require('twitter');
-const APP_KEY = 'AIzaSyBg6WmUtEwm2MoPiKPzwpwbktvKRhvXUgE';
+const API_KEY = 'AIzaSyBg6WmUtEwm2MoPiKPzwpwbktvKRhvXUgE';
 var client = new Twitter({
     consumer_key: 'CXVNsTDohsJaIxl0cjpuLKXYr',
     consumer_secret: 'Y49dNi2NPN9vJaPS95QnRLslOqisEuC7v934lHOfN05cVjbtDB',
@@ -20,7 +20,7 @@ io.on('connection', function (socket) {
 
 
     socket.on('geolocation', function (location) {
-        var mapsUrl = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + location + "&key=" + APP_KEY;
+        var mapsUrl = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + location + "&key=" + API_KEY;
         fetch(mapsUrl)
             .then(res => res.json())
             .then(json => {
@@ -96,13 +96,6 @@ function startStream(locations) {
     return stream;
 }
 
-
-// listen to the twitter stream and tweet comes in send it to the client real time
-
-
-
-
-
 var path = require('path');
 var bodyParser = require('body-parser')
 app.use(bodyParser.urlencoded({extended : false})); 
@@ -110,6 +103,46 @@ app.use(bodyParser.urlencoded({extended : false}));
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname + '/index.html'));
 });
+
+app.post('/tweet', function (req, res) {
+    client.post('statuses/update', { status: req.body.tweet })
+        .then(function (tweet) {
+            res.json(tweet);
+        })
+        .catch(function (error) {
+            res.status(500).json(error);
+        });
+});
+
+app.get('/search', (req, res) => {
+        client.get('search/tweets', {
+            q: '#nowplaying url:youtube',
+            result_type: 'recent',
+            count: 5,
+            geocode: req.query.geocode,
+            include_entities: true
+        })
+        .then(function (response) {
+            // res.send(tweets);
+            tweets.forEach((tweet, index) => {
+                var youtubeId = getYoutubeId(tweet);
+                if (youtubeId) {
+                    var tweet = {
+                        id: data.id_str,
+                        youtubeLink: 'https://www.youtube.com/embed/' + youtubeId
+                    };
+
+                    getYoutubeTitle(youtubeId, (err, title) => {
+                        tweet.youtubeTitle = title;
+                        io.sockets.emit('tweet', tweet);
+                    });
+                }
+            });
+        })
+        .catch(function (error) {
+            res.status(500).json(error);
+        });
+})
 
 
 
