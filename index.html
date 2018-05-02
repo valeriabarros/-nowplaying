@@ -6,6 +6,71 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>#nowplaying</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        function renderTweet(tweet) {
+            var feed = document.getElementById('feed');
+            var feedItemTemplate = document.getElementById('feed-item-template');
+            var feedItem = feedItemTemplate.cloneNode(true);
+
+            feedItem.style.display = 'block';
+            feed.insertBefore(feedItem, feed.childNodes[0]);
+            // feed.appendChild(feedItem);
+
+            window.twttr.widgets.createTweet( 
+                tweet.id,
+                feedItem.getElementsByClassName('twitter-card')[0],
+                { theme: 'dark', conversation: 'none', cards: 'hidden' } 
+            );
+            var embeddedPlayer = (feedItem.getElementsByClassName('video-player')[0]).getElementsByTagName('iframe')[0];
+            embeddedPlayer.getAttributeNode('src').value = tweet.youtubeLink;
+
+            feedItem.getElementsByTagName('h3')[0].innerText = tweet.youtubeTitle;
+        }
+
+        var socket = io('http://localhost:3000');
+        socket.on('connect', function () {
+            var self = this;
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    self.emit('geolocation', position.coords.latitude + ',' + position.coords.longitude);
+                });
+            }
+        });
+
+        socket.on('city', city => {
+            Array.from(document.getElementsByClassName('city'))
+                .forEach(element => {
+                    element.innerText = city;
+                });
+        })
+
+
+        window.twttr = (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0],
+                t = window.twttr || {};
+            if (d.getElementById(id)) return t;
+            js = d.createElement(s);
+            js.id = id;
+            js.src = "https://platform.twitter.com/widgets.js";
+            fjs.parentNode.insertBefore(js, fjs);
+
+            t._e = [];
+            t.ready = function (f) {
+                t._e.push(f);
+            };
+
+            return t;
+        }(document, "script", "twitter-wjs"));
+
+        window.twttr.ready(function() {
+            socket.on('tweet', function (tweet) { 
+                renderTweet(tweet);
+            });
+        });
+    </script>
+
+<!-- 
     <script>
         function getTweets() {
             
@@ -48,24 +113,7 @@
             }
         }
          
-        window.twttr = (function (d, s, id) {
-            var js, fjs = d.getElementsByTagName(s)[0],
-                t = window.twttr || {};
-            if (d.getElementById(id)) return t;
-            js = d.createElement(s);
-            js.id = id;
-            js.src = "https://platform.twitter.com/widgets.js";
-            fjs.parentNode.insertBefore(js, fjs);
-
-            t._e = [];
-            t.ready = function (f) {
-                t._e.push(f);
-            };
-
-            return t;
-        }(document, "script", "twitter-wjs"));
-
-        window.twttr.ready(getTweets);
+        
     </script>
     <script>
         function postTweet() {
@@ -90,13 +138,13 @@
             obj.send(tweet);
             return false;
         }
-    </script>
+    </script> -->
   
 </head>
 <body>
-    <h2>#nowplaying in whatever</h2>
+    <h2>#nowplaying in <span class="city">anywhere</span></h2>
     <div>
-        This page shows #nowplaying tweets in whatever that contain a Youtube link. It also allows you to post a #nowplaying tweet with a Youtube link.
+        This page shows #nowplaying tweets in <span class="city">anywhere</span> that contain a Youtube link. It also allows you to post a #nowplaying tweet with a Youtube link.
     </div>
     <div class="content">
         <form method="POST" onsubmit="return postTweet();">
