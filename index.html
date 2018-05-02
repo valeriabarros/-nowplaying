@@ -12,26 +12,39 @@
             var coordenades = null;
             if(navigator.geolocation) { 
                 navigator.geolocation.getCurrentPosition(function(position) { 
-                    coordenades = position.coords.latitude + "," + position.coords.longitude + ",100km";
-                    sendRequest();
+                    coordenades = position.coords.latitude + "," + position.coords.longitude + ",1000km";
+                    sendRequest() ;
                 }); 
             }
 
             function sendRequest() {
                 var obj = new XMLHttpRequest(); 
                 obj.onreadystatechange = function () { 
-                    if (obj.readyState === 4) { 
+                    if (obj.readyState === 4 && obj.response) { 
                         var json = JSON.parse(obj.response);
-                        json.statuses.forEach(element => { window.twttr.widgets.createTweet( 
-                            element.id_str, 
-                            document.getElementById('container'),
+                        var feed = document.getElementById('feed');
+                        var feedItemTemplate = document.getElementById('feed-item-template');
+
+                        json.forEach(tweet => { 
+                            var feedItem = feedItemTemplate.cloneNode(true);
+                            feedItem.style.display = 'block';
+                            feed.appendChild(feedItem);
+
+                            window.twttr.widgets.createTweet( 
+                                tweet.id,
+                                feedItem.getElementsByClassName('twitter-card')[0],
                                 { theme: 'dark', conversation: 'none', cards: 'hidden' } 
-                            ); 
+                            );
+                            var embeddedPlayer = (feedItem.getElementsByClassName('video-player')[0]).getElementsByTagName('iframe')[0];
+                            embeddedPlayer.getAttributeNode('src').value = 'https://www.youtube.com/embed/' + tweet.youtubeId;
+
+                            feedItem.getElementsByTagName('h3')[0].innerText = tweet.youtubeTitle;
                         }); 
                     } 
                 } 
                 obj.open('GET', '/search?geocode=' + coordenades, true); 
                 obj.send();
+                setTimeout(sendRequest, 20000);
             }
         }
          
@@ -59,7 +72,7 @@
             var tweet = 'tweet=' + document.getElementById("tweet").value;
             var obj = new XMLHttpRequest();
             obj.onreadystatechange = function () {
-                if (obj.readyState === 4) {
+                if (obj.readyState === 4 && obj.response) {
                     var response = JSON.parse(obj.response);
                     window.twttr.widgets.createTweet(
                         response.id_str,
@@ -81,14 +94,30 @@
   
 </head>
 <body>
-    <form method="POST" onsubmit="return postTweet();">
-        <textarea id="tweet" name="tweet"></textarea>
-
-        <input type="submit">
-    </form>
-
-    <div id="container">
+    <h2>#nowplaying in whatever</h2>
+    <div>
+        This page shows #nowplaying tweets in whatever that contain a Youtube link. It also allows you to post a #nowplaying tweet with a Youtube link.
     </div>
+    <div class="content">
+        <form method="POST" onsubmit="return postTweet();">
+            <div class="form-row">
+                <label class="label-info">Video URL:</label>
+                <input type="text" placeholder="https://youtube.com">
+                <label class="label-info">Comment:</label>
+                <input id="tweet" name="tweet" value="#nowplaying" ></input>    
+                <input type="submit">
+            </div>
+        </form>
+    </div>
+    <ul id="feed">
+        <li style="display:none" id="feed-item-template">
+            <h3>Title</h3>
+            <div class="video-player">
+                <iframe width="420" src=""></iframe>
+            </div>
+            <div class="twitter-card"></div>
+        </li>
+    </ul>
 </body>
 </html>
 
