@@ -38,6 +38,13 @@
             }
         });
 
+        socket.on('city', city => {
+            Array.from(document.getElementsByClassName('city'))
+                .forEach(element => {
+                    element.innerText = city;
+                });
+        })
+
 
         window.twttr = (function (d, s, id) {
             var js, fjs = d.getElementsByTagName(s)[0],
@@ -135,9 +142,9 @@
   
 </head>
 <body>
-    <h2>#nowplaying in whatever</h2>
+    <h2>#nowplaying in <span class="city">anywhere</span></h2>
     <div>
-        This page shows #nowplaying tweets in whatever that contain a Youtube link. It also allows you to post a #nowplaying tweet with a Youtube link.
+        This page shows #nowplaying tweets in <span class="city">anywhere</span> that contain a Youtube link. It also allows you to post a #nowplaying tweet with a Youtube link.
     </div>
     <div class="content">
         <form method="POST" onsubmit="return postTweet();">

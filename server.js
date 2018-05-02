@@ -31,7 +31,7 @@ io.on('connection', function (socket) {
                     var locations = [area.geometry.bounds.southwest.lat, area.geometry.bounds.southwest.lng,
                         area.geometry.bounds.northeast.lat, area.geometry.bounds.northeast.lng].join(',');
                     var city = area.address_components[0].long_name;
-                    console.log('200 vezes?');
+                    socket.emit('city', city);
                     stream = startStream(locations);
                 }
             });
@@ -44,7 +44,10 @@ io.on('connection', function (socket) {
 });
 
 function startStream(locations) {
-    var stream = client.stream('statuses/filter', { track: '#nowplaying youtube com,#nowplaying youtu be', locations: locations });
+    var stream = client.stream('statuses/filter', 
+    { track: '#nowplaying youtube com,#nowplaying youtu be', 
+    locations: locations,
+    filter_level: 'low' });
     stream.on('data', function (data) {
         console.log(data);
         function getYoutubeId(data) {
