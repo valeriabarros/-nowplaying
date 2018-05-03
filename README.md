@@ -2,10 +2,9 @@
 Single page application that allows to see and post #nowplaying tweets.
 
 
-
 ## How to
 
-First of all, make sure your port 3000 is available!
+**First of all, make sure your port 3000 is available!**
 
 ```git clone git@github.com:valeriabarros/nowplaying.git```
 
@@ -15,8 +14,7 @@ First of all, make sure your port 3000 is available!
 
 ```npm run serve```
 
-Access your localhost in port 3000, for example: `localhost:3000`
-
+Take a look in your chrome!
 
 ## Follow up
 

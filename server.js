@@ -8,6 +8,7 @@ const fetch = require('node-fetch');
 const config = require("./config.json");
 const bodyParser = require('body-parser');
 const twitterClient = new twitter(config.twitter);
+const startChrome = require('start-chrome');
 
 app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.urlencoded({
@@ -126,4 +127,5 @@ function getYoutubeId(tweet) {
 }
 
 server.listen(3000);
+startChrome('http://localhost:3000');
 console.log('server running at http://localhost:3000');

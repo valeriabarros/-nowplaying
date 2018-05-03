@@ -15,6 +15,7 @@
     "get-youtube-title": "^1.0.0",
     "node-fetch": "^2.1.2",
     "socket.io": "^2.1.0",
+    "start-chrome": "0.0.2",
     "twitter": "^1.7.1"
   }
 }
