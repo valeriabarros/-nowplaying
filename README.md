@@ -11,7 +11,7 @@ Single page application that allows to see and post #nowplaying tweets.
 
 ```npm install```
 
-```node server.js```
+```npm run serve```
 
 Access your localhost in port 3000, for example: `localhost:3000`
 

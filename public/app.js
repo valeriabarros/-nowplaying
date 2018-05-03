@@ -1,13 +1,14 @@
 var app = (function() {
     var twitter;
-    var socket = io('http://localhost:3000');
+    var socket;
 
-    function init() {
+    function init(_socket) {
+        socket = _socket;
         document.getElementById('js-form-post-tweet').addEventListener('submit', postTweet);
-        loadTwitterClient(bindSockets);
+        loadTwitterClient();
     }
 
-    function loadTwitterClient(onReady) {
+    function loadTwitterClient() {
         window.twttr = (function (d, s, id) {
             var js, fjs = d.getElementsByTagName(s)[0],
                 t = window.twttr || {};
@@ -25,14 +26,8 @@ var app = (function() {
             return t;
         }(document, 'script', 'twitter-wjs'));
 
-        window.twttr.ready(onReady);
+        window.twttr.ready();
         twitter = window.twttr;
-    }
-
-    function bindSockets() {
-        socket.on('connect', getLocation);
-        socket.on('tweet', renderTweet);
-        socket.on('city', updateCity);
     }
 
     function getLocation() {
@@ -65,7 +60,7 @@ var app = (function() {
         var request = new XMLHttpRequest();
         request.open('POST', '/api/tweet', true);
         request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-        request.send(`tweet=${document.getElementById('js-tweet-content').value} ${document.getElementById('js-tweet-video-url').value}`);
+        request.send(`tweet=#nowplaying ${document.getElementById('js-tweet-content').value} ${document.getElementById('js-tweet-video-url').value}`);
     }
 
     function renderTweet(tweet) {
@@ -83,13 +78,21 @@ var app = (function() {
         twitter.widgets.createTweet(
             tweet.id,
             feedItem.getElementsByClassName('twitter-card__tweet')[0],
-            { theme: 'dark', conversation: 'none', cards: 'hidden' }
+            { conversation: 'none', cards: 'hidden' }
         );
     }
 
     return {
-        init: init
+        init: init,
+        getLocation: getLocation,
+        renderTweet: renderTweet,
+        updateCity: updateCity
     }
 })();
 
-app.init();
+var socket = io();
+socket.on('connect', app.getLocation);
+socket.on('tweet', app.renderTweet);
+socket.on('city', app.updateCity);
+
+app.init(socket);

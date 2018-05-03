@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+body {
+    padding: 10px;
+}
+
+.main-container {
+    max-width: 1111px
+}
+
+.main-title,
+.main-subtitle {
+    margin-bottom: 10px;
+}
+
+.twitter-feed {
+    margin: 20px 0 0 0;
+}
+
+.form-post-tweet {
+    background-color: #eee;
+    height: 50px;
+    align-items: center;
+    display: flex;
+    font-size: 16px;
+}
+
+.form-post-tweet__label,
+.form-post-tweet__text-field,
+.form-post-tweet__submit-button {
+    margin-left: 10px;
+}
+
+.form-post-tweet__text-field {
+    height: 25px;
+    width: 300px;
+}
+
+.form-post-tweet__submit-button {
+    background-color: #1997F0;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.twitter-card {
+    overflow: hidden;
+    padding: 10px;
+    margin: 0 0 20px 0;
+    border-radius: 10px;
+    border: 2px solid #eee;
+}
+
+.twitter-tweet.twitter-tweet-rendered {
+    margin-top: 0 !important;
+    margin-left: 10px;
+}
+
+.twitter-card__title {
+    margin: 0 0 10px 0;
+}
+
+.twitter-card__video-player,
+.twitter-card__tweet {
+    float: left;
+}

@@ -10,7 +10,7 @@
 <body>
     <main class="main-container">
         <header class="main-header">
-            <h2 class="main-title">#nowplaying in<span class="js-display-city">anywhere</span></h2>
+            <h2 class="main-title">#nowplaying in <span class="js-display-city">anywhere</span></h2>
             <p class="main-subtitle">
                 This page shows #nowplaying tweets in <span class="js-display-city">anywhere</span> that contain a Youtube link. It also allows you to post a #nowplaying tweet with a Youtube link.
             </p>
@@ -19,8 +19,8 @@
                 <label class="form-post-tweet__label">Video URL:</label>
                 <input type="text" class="form-post-tweet__text-field" id="js-tweet-video-url" placeholder="https://youtube.com">
                 <label class="form-post-tweet__label">Comment:</label>
-                <input type="text" class="form-post-tweet__text-field" id="js-tweet-content" name="tweet" value="#nowplaying">   
-                <input type="submit" class="form-post-tweet__submit-button">
+                <input type="text" class="form-post-tweet__text-field" id="js-tweet-content" name="tweet">   
+                <input type="submit" class="form-post-tweet__submit-button" value="Tweet to #nowplaying">
             </form>
             <!-- end: form post tweet -->
         </header>
@@ -29,7 +29,7 @@
             <li class="twitter-card" style="display:none" id="js-tweet-template">
                 <h3 class="twitter-card__title">Title</h3>
                 <div class="twitter-card__video-player">
-                    <iframe width="420" src=""></iframe>
+                    <iframe width="569" height="320" frameborder="0" src=""></iframe>
                 </div>
                 <div class="twitter-card__tweet"></div>
             </li>

@@ -24,7 +24,7 @@ app.post('/api/tweet', (req, res) => {
 
 //
 io.on('connection', function (socket) {
-    console.log('User connected. Socket id %s', socket.id);
+    console.log('User connected. Socket id', socket.id);
     let stream;
 
     socket.on('get tweets', geocode => {
@@ -36,22 +36,10 @@ io.on('connection', function (socket) {
                 include_entities: true
             })
             .then(function (response) {
-                console.log(response);
-                response.statuses.forEach((tweet, index) => {
-                    const youtubeId = getYoutubeId(tweet);
-                    if (!youtubeId) return;
-
-                    getYoutubeTitle(youtubeId, (err, title) => {
-                        io.sockets.emit('tweet', {
-                            id: tweet.id_str,
-                            youtubeLink: `https://www.youtube.com/embed/${youtubeId}`,
-                            youtubeTitle: title
-                        });
-                    });
-                });
+                response.statuses.forEach(data => sendTweet(data));
             })
             .catch(error => {
-                console.log('error');
+                console.log('error', error);
             });
     });
 
@@ -73,10 +61,23 @@ io.on('connection', function (socket) {
     });
 
     socket.on('disconnect', function () {
-        console.log('User disconnected. %s. Socket id %s', socket.id);
+        console.log('User disconnected', socket.id);
         if (stream) stream.destroy();
     });
 });
+
+function sendTweet(data) {
+    const youtubeId = getYoutubeId(data);
+    if (!youtubeId) return null;
+
+    getYoutubeTitle(youtubeId, (err, title) => {
+        io.sockets.emit('tweet', {
+            id: data.id_str,
+            youtubeLink: `https://www.youtube.com/embed/${youtubeId}?feature=oembed&showinfo=0`,
+            youtubeTitle: title
+        });
+    });
+}
 
 function startStream(locations) {
     const stream = twitterClient.stream('statuses/filter', { 
@@ -85,21 +86,9 @@ function startStream(locations) {
         filter_level: 'low' 
     });
 
-    stream.on('data', data => {
-        const youtubeId = getYoutubeId(data);
-        if (!youtubeId) return;
-
-        getYoutubeTitle(youtubeId, (err, title) => {
-            io.sockets.emit('tweet', {
-                id: data.id_str,
-                youtubeLink: `https://www.youtube.com/embed/${youtubeId}`,
-                youtubeTitle: title
-            });
-        });
-    });
+    stream.on('data', data => sendTweet(data));
     return stream;
 }
-
 
 function getYoutubeId(tweet) {
     const sources = {
@@ -112,7 +101,7 @@ function getYoutubeId(tweet) {
 
     function getId(entities) {
         return entities.urls.reduce((acc, link) => {
-            const idMatch = link.expanded_url.match(/.*(?:youtu.be|youtube).*?\/(?!results)(?:watch\?v=)?([\w-]*)/);
+            const idMatch = link.expanded_url.match(/.+(?:www)?youtu(?:\.?be)(?:\.com)?\/(?:watch\?v=)?([\w-]+)(?:&|$)/);
             return (acc === '' && idMatch && idMatch[1]) || acc;
         }, '');
     }
