@@ -6,7 +6,7 @@ Single page application that allows to see and post #nowplaying tweets.
 
 **First of all, make sure your port 3000 is available!**
 
-```git clone git@github.com:valeriabarros/nowplaying.git```
+```git clone git@github.com:valeriabarros/nowplaying.git or https://github.com/valeriabarros/nowplaying.git```
 
 ```cd nowplaying```
 
