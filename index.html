@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,130 +5,40 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>#nowplaying</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        function renderTweet(tweet) {
-            var feed = document.getElementById('feed');
-            var feedItemTemplate = document.getElementById('feed-item-template');
-            var feedItem = feedItemTemplate.cloneNode(true);
-
-            feedItem.style.display = 'block';
-            feed.insertBefore(feedItem, feed.childNodes[0]);
-
-            window.twttr.widgets.createTweet( 
-                tweet.id,
-                feedItem.getElementsByClassName('twitter-card')[0],
-                { theme: 'dark', conversation: 'none', cards: 'hidden' } 
-            );
-            var embeddedPlayer = (feedItem.getElementsByClassName('video-player')[0]).getElementsByTagName('iframe')[0];
-            embeddedPlayer.getAttributeNode('src').value = tweet.youtubeLink;
-
-            feedItem.getElementsByTagName('h3')[0].innerText = tweet.youtubeTitle;
-        }
-
-        var socket = io('http://localhost:3000');
-        socket.on('connect', function () {
-            var self = this;
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function (position) {
-                    var geocode = position.coords.latitude + ',' + position.coords.longitude;
-                    self.emit('geolocation', geocode);
-                    self.emit('get tweets', geocode);
-                });
-            }
-        });
-
-        socket.on('city', city => {
-            Array.from(document.getElementsByClassName('city'))
-                .forEach(element => {
-                    element.innerText = city;
-                });
-        })
-
-        window.twttr = (function (d, s, id) {
-            var js, fjs = d.getElementsByTagName(s)[0],
-                t = window.twttr || {};
-            if (d.getElementById(id)) return t;
-            js = d.createElement(s);
-            js.id = id;
-            js.src = "https://platform.twitter.com/widgets.js";
-            fjs.parentNode.insertBefore(js, fjs);
-
-            t._e = [];
-            t.ready = function (f) {
-                t._e.push(f);
-            };
-
-            return t;
-        }(document, "script", "twitter-wjs"));
-
-        window.twttr.ready(function() {
-            socket.on('tweet', function (tweet) { 
-                renderTweet(tweet);
-            });
-        });
-    </script>
-    <script>
-        // function getTweets() {
-        //     var geocode = null;
-        //     if(navigator.geolocation) { 
-        //         navigator.geolocation.getCurrentPosition(function(position) { 
-        //             geocode = position.coords.latitude + "," + position.coords.longitude + ",100km";
-        //             sendRequest() ;
-        //         }); 
-        //     }
-
-        //     function sendRequest() {
-        //         var obj = new XMLHttpRequest(); 
-        //         obj.onreadystatechange = function () { 
-        //             if (obj.readyState === 4 && obj.response) { 
-        //                 JSON.parse(obj.response).forEach(tweet => { 
-        //                     renderTweet(tweet);
-        //                 }); 
-        //             } 
-        //         } 
-        //         obj.open('GET', '/search?geocode=' + geocode, true); 
-        //         obj.send();
-        //         setTimeout(sendRequest, 20000);
-        //     }
-        // }
-        function postTweet() {
-            var tweet = 'tweet=' + document.getElementById("tweet").value + " "
-                                 + document.getElementById("video-url").value;
-            var obj = new XMLHttpRequest();
-            obj.open('POST', '/tweet', true);
-            obj.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-            obj.send(tweet);
-            return false;
-        }
-    </script>
-  
+    <link rel="stylesheet" href="app.css">
 </head>
 <body>
-    <h2>#nowplaying in <span class="city">anywhere</span></h2>
-    <div>
-        This page shows #nowplaying tweets in <span class="city">anywhere</span> that contain a Youtube link. It also allows you to post a #nowplaying tweet with a Youtube link.
-    </div>
-    <div class="content">
-        <form method="POST" onsubmit="return postTweet();">
-            <div class="form-row">
-                <label class="label-info">Video URL:</label>
-                <input type="text" id="video-url" placeholder="https://youtube.com">
-                <label class="label-info">Comment:</label>
-                <input id="tweet" name="tweet" value="#nowplaying" ></input>    
-                <input type="submit">
-            </div>
-        </form>
-    </div>
-    <ul id="feed">
-        <li style="display:none" id="feed-item-template">
-            <h3>Title</h3>
-            <div class="video-player">
-                <iframe width="420" src=""></iframe>
-            </div>
-            <div class="twitter-card"></div>
-        </li>
-    </ul>
+    <main class="main-container">
+        <header class="main-header">
+            <h2 class="main-title">#nowplaying in<span class="js-display-city">anywhere</span></h2>
+            <p class="main-subtitle">
+                This page shows #nowplaying tweets in <span class="js-display-city">anywhere</span> that contain a Youtube link. It also allows you to post a #nowplaying tweet with a Youtube link.
+            </p>
+            <!-- end: title -->
+            <form class="form-post-tweet" id="js-form-post-tweet">
+                <label class="form-post-tweet__label">Video URL:</label>
+                <input type="text" class="form-post-tweet__text-field" id="js-tweet-video-url" placeholder="https://youtube.com">
+                <label class="form-post-tweet__label">Comment:</label>
+                <input type="text" class="form-post-tweet__text-field" id="js-tweet-content" name="tweet" value="#nowplaying">   
+                <input type="submit" class="form-post-tweet__submit-button">
+            </form>
+            <!-- end: form post tweet -->
+        </header>
+        <!-- end: header -->
+        <ul id="js-twitter-feed" class="twitter-feed">
+            <li class="twitter-card" style="display:none" id="js-tweet-template">
+                <h3 class="twitter-card__title">Title</h3>
+                <div class="twitter-card__video-player">
+                    <iframe width="420" src=""></iframe>
+                </div>
+                <div class="twitter-card__tweet"></div>
+            </li>
+            <!-- end: twitter card template -->
+        </ul>
+        <!-- end: twitter feed -->
+    </main>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
 
