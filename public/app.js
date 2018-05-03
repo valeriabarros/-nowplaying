@@ -46,6 +46,7 @@ var app = (function() {
     // send request to return tweets
     function getTweets(geocode) {
         socket.emit('get tweets', geocode);
+        document.getElementById('js-preloader').style.display = 'none';
     }
     // once the city is available, include the name on layout
     function updateCity(city) {

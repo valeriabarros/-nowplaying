@@ -19,16 +19,13 @@ body {
     margin-bottom: 10px;
 }
 
-.twitter-feed {
-    margin: 20px 0 0 0;
-}
-
 .form-post-tweet {
     background-color: #eee;
     height: 50px;
     align-items: center;
     display: flex;
     font-size: 16px;
+    justify-content: center;
 }
 
 .form-post-tweet__label,
@@ -43,11 +40,16 @@ body {
 }
 
 .form-post-tweet__submit-button {
-    background-color: #1997F0;
+    background: #1997F0 url('twitter-icon.svg') no-repeat 5px center/14%;
     color: white;
     border: none;
-    padding: 5px 10px;
+    padding: 5px 10px 5px 30px;
     border-radius: 4px;
+    font-weight: 400;
+}
+
+.twitter-feed {
+    margin: 20px 0 0 0;
 }
 
 .twitter-card {
@@ -70,4 +72,16 @@ body {
 .twitter-card__video-player,
 .twitter-card__tweet {
     float: left;
+    background: url('loading.gif') center 10px/20% no-repeat;
+    height: 320px;
+}
+
+.twitter-card__tweet {
+    width: 500px;
+}
+
+.preloader {
+    margin: 20px 0 0 10px;
+    background: url(loading.gif) left center/4% no-repeat;
+    padding: 10px 10px 10px 40px;
 }

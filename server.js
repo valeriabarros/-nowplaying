@@ -10,14 +10,18 @@ const bodyParser = require('body-parser');
 const twitterClient = new twitter(config.twitter);
 
 app.use(express.static(__dirname + '/public'));
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+    extended: false
+}));
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
 app.post('/api/tweet', (req, res) => {
-    twitterClient.post('statuses/update', { status: req.body.tweet })
+    twitterClient.post('statuses/update', {
+            status: req.body.tweet
+        })
         .then(tweet => res.json(tweet))
         .catch(error => res.status(500).json(error));
 });
@@ -50,8 +54,8 @@ io.on('connection', function (socket) {
                 if (json.status === 'OK') {
                     const area = json.results.find(data => data.types.includes('administrative_area_level_2'));
                     const locations = [
-                        area.geometry.bounds.southwest.lat, area.geometry.bounds.southwest.lng,
-                        area.geometry.bounds.northeast.lat, area.geometry.bounds.northeast.lng
+                        area.geometry.bounds.southwest.lng, area.geometry.bounds.southwest.lat,
+                        area.geometry.bounds.northeast.lng, area.geometry.bounds.northeast.lat
                     ].join(',');
 
                     socket.emit('city', area.address_components[0].long_name);
@@ -67,6 +71,8 @@ io.on('connection', function (socket) {
 });
 // get tweet relevant information to layout and send to client
 function sendTweet(data) {
+    if (!data.entities.hashtags.find(hash => hash.text.toLowerCase() === 'nowplaying')) return null;
+
     const youtubeId = getYoutubeId(data);
     if (!youtubeId) return null;
 
@@ -80,13 +86,16 @@ function sendTweet(data) {
 }
 // active stream
 function startStream(locations) {
-    const stream = twitterClient.stream('statuses/filter', { 
+    const stream = twitterClient.stream('statuses/filter', {
         locations,
-        track: '#nowplaying youtube com,#nowplaying youtu be', 
-        filter_level: 'low' 
+        track: '#nowplaying'
     });
 
     stream.on('data', data => sendTweet(data));
+    stream.on('error', function (error) {
+        console.log(error);
+    });
+
     return stream;
 }
 // filter, check and return youtubeId by tweet.
@@ -118,4 +127,3 @@ function getYoutubeId(tweet) {
 
 server.listen(3000);
 console.log('server running at http://localhost:3000');
-
