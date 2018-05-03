@@ -7,7 +7,7 @@ var app = (function() {
         document.getElementById('js-form-post-tweet').addEventListener('submit', postTweet);
         loadTwitterClient();
     }
-
+    // Instantiate twitter-widget element
     function loadTwitterClient() {
         window.twttr = (function (d, s, id) {
             var js, fjs = d.getElementsByTagName(s)[0],
@@ -29,32 +29,32 @@ var app = (function() {
         window.twttr.ready();
         twitter = window.twttr;
     }
-
+    // Start closure to get location
     function getLocation() {
         navigator.geolocation.getCurrentPosition(onGetLocationComplete);
     }
-
+    // Once the location is available on browser, get the data.
     function onGetLocationComplete(position) {
         var geocode = position.coords.latitude + ',' + position.coords.longitude;
         sendGeocode(geocode);
         getTweets(geocode);
     }
-
+    // send to server
     function sendGeocode(geocode) {
         socket.emit('geolocation', geocode);
     }
-
+    // send request to return tweets
     function getTweets(geocode) {
         socket.emit('get tweets', geocode);
     }
-
+    // once the city is available, include the name on layout
     function updateCity(city) {
         Array.from(document.getElementsByClassName('js-display-city'))
             .forEach(function(element) {
                 element.innerText = city;
             });
     }
-
+    // post tweet 
     function postTweet(event) {
         event.preventDefault();
         var request = new XMLHttpRequest();
@@ -62,7 +62,7 @@ var app = (function() {
         request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
         request.send(`tweet=#nowplaying ${document.getElementById('js-tweet-content').value} ${document.getElementById('js-tweet-video-url').value}`);
     }
-
+    // create a tweet widget for each one available 
     function renderTweet(tweet) {
         var feed = document.getElementById('js-twitter-feed');
         var feedItemTemplate = document.getElementById('js-tweet-template');
@@ -89,7 +89,7 @@ var app = (function() {
         updateCity: updateCity
     }
 })();
-
+// Add listeners and initiate app
 var socket = io();
 socket.on('connect', app.getLocation);
 socket.on('tweet', app.renderTweet);

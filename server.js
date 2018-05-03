@@ -22,11 +22,11 @@ app.post('/api/tweet', (req, res) => {
         .catch(error => res.status(500).json(error));
 });
 
-//
+// active when socket is connected
 io.on('connection', function (socket) {
     console.log('User connected. Socket id', socket.id);
     let stream;
-
+    // on get tweets listerner, prepare data
     socket.on('get tweets', geocode => {
         twitterClient.get('search/tweets', {
                 q: '#nowplaying url:youtube filter:media',
@@ -42,7 +42,7 @@ io.on('connection', function (socket) {
                 console.log('error', error);
             });
     });
-
+    // once geolocation is available, get city/bounds data from google-maps-api.
     socket.on('geolocation', location => {
         fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${location}&key=${config.google_maps.api_key}`)
             .then(res => res.json())
@@ -59,13 +59,13 @@ io.on('connection', function (socket) {
                 }
             });
     });
-
+    // kill stream process
     socket.on('disconnect', function () {
         console.log('User disconnected', socket.id);
         if (stream) stream.destroy();
     });
 });
-
+// get tweet relevant information to layout and send to client
 function sendTweet(data) {
     const youtubeId = getYoutubeId(data);
     if (!youtubeId) return null;
@@ -78,7 +78,7 @@ function sendTweet(data) {
         });
     });
 }
-
+// active stream
 function startStream(locations) {
     const stream = twitterClient.stream('statuses/filter', { 
         locations,
@@ -89,7 +89,7 @@ function startStream(locations) {
     stream.on('data', data => sendTweet(data));
     return stream;
 }
-
+// filter, check and return youtubeId by tweet.
 function getYoutubeId(tweet) {
     const sources = {
         root: tweet,
