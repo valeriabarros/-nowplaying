@@ -18,6 +18,6 @@ Take a look in your chrome!
 
 ## Follow up
 
-[@barros_val](https://www.twitter.com/barros_val)
+[@valeriaberros](https://www.twitter.com/valeriaberros)
 
 ## #SharingIsCaring
